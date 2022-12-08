@@ -1,15 +1,20 @@
 from pathlib import Path
-from typing import Union, Optional
+from typing import Optional, cast
 
 
-class File:
+class DirectoryElement:
+    name: str
+    size: int
+
+
+class File(DirectoryElement):
     def __init__(self, name: str, size: int):
         self.name = name
         self.size = size
 
 
-class Directory:
-    def __init__(self, name: str, contents: dict[str, Union[File, "Directory"]], parent_dir: Optional["Directory"]):
+class Directory(DirectoryElement):
+    def __init__(self, name: str, contents: dict[str, DirectoryElement], parent_dir: Optional["Directory"]):
         self.name = name
         self.contents = contents
         self.parent_dir = parent_dir
@@ -51,7 +56,7 @@ def part_b(contents: str):
     return min(size for size in get_dir_sizes(root_dir) if size >= space_to_delete)
 
 
-def parse_directory_tree(contents):
+def parse_directory_tree(contents: str) -> Directory:
     root_dir = Directory("/", {}, None)
     current_directory: Directory = root_dir
     for line in contents.split("\n"):
@@ -65,7 +70,7 @@ def parse_directory_tree(contents):
                     elif arg == "..":
                         current_directory = current_directory.parent_dir
                     else:
-                        current_directory = current_directory.contents[arg]
+                        current_directory = cast(Directory, current_directory.contents[arg])
         else:
             if line.startswith("dir "):
                 # dir potato
