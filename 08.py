@@ -1,35 +1,4 @@
 from pathlib import Path
-from typing import Optional, cast
-
-
-class DirectoryElement:
-    name: str
-    size: int
-
-
-class File(DirectoryElement):
-    def __init__(self, name: str, size: int):
-        self.name = name
-        self.size = size
-
-
-class Directory(DirectoryElement):
-    def __init__(self, name: str, contents: dict[str, DirectoryElement], parent_dir: Optional["Directory"]):
-        self.name = name
-        self.contents = contents
-        self.parent_dir = parent_dir
-
-    @property
-    def size(self):
-        return sum([item.size for item in self.contents.values()])
-
-
-def get_dir_sizes(root_dir: Directory) -> list[int]:
-    result = [root_dir.size]
-    for content in root_dir.contents.values():
-        if isinstance(content, Directory):
-            result.extend(get_dir_sizes(content))
-    return result
 
 
 def is_visible_left(x: int, y: int, grid: list[list[int]]) -> bool:
@@ -65,22 +34,18 @@ def is_visible_down(x: int, y: int, grid: list[list[int]]) -> bool:
 
 
 def part_a(contents: str):
-    lines = contents.split("\n")
-    lines = [list(line) for line in lines]
-    for line_index in range(len(lines)):
-        for character_index in range(len(lines[line_index])):
-            lines[line_index][character_index] = int(lines[line_index][character_index])
+    grid = parse_to_grid(contents)
 
-    result = len(lines) * 2
-    result += len(lines[0]) * 2
+    result = len(grid) * 2
+    result += len(grid[0]) * 2
     result -= 4
 
-    for line_index, line in enumerate(lines[1:-1]):
+    for line_index, line in enumerate(grid[1:-1]):
         for character_index, character in enumerate(line[1:-1]):
-            if is_visible_left(character_index+1, line_index+1, lines) or\
-                    is_visible_right(character_index+1, line_index+1, lines) or \
-                    is_visible_up(character_index+1, line_index+1, lines) or\
-                    is_visible_down(character_index+1, line_index+1, lines):
+            if is_visible_left(character_index+1, line_index+1, grid) or\
+                    is_visible_right(character_index+1, line_index+1, grid) or \
+                    is_visible_up(character_index+1, line_index+1, grid) or\
+                    is_visible_down(character_index+1, line_index+1, grid):
                 result += 1
     return result
 
@@ -116,18 +81,23 @@ def calculate_scenic_score(x: int, y: int, grid: list[list[int]]) -> int:
 
 
 def part_b(contents: str):
+    grid = parse_to_grid(contents)
+
+    result = 0
+    for line_index, line in enumerate(grid[1:-1]):
+        for character_index, character in enumerate(line[1:-1]):
+            result = max(result, calculate_scenic_score(character_index+1, line_index+1, grid))
+
+    return result
+
+
+def parse_to_grid(contents: str) -> list[list[int]]:
     lines = contents.split("\n")
     lines = [list(line) for line in lines]
     for line_index in range(len(lines)):
         for character_index in range(len(lines[line_index])):
             lines[line_index][character_index] = int(lines[line_index][character_index])
-
-    result = 0
-    for line_index, line in enumerate(lines[1:-1]):
-        for character_index, character in enumerate(line[1:-1]):
-            result = max(result, calculate_scenic_score(character_index+1, line_index+1, lines))
-
-    return result
+    return lines
 
 
 def main():
