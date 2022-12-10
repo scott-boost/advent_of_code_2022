@@ -1,7 +1,4 @@
-import dataclasses
-import math
 from pathlib import Path
-from typing import Optional
 
 
 def part_a(contents: str):
